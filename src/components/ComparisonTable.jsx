@@ -1,20 +1,11 @@
 import { providers } from '../data/providers';
 
 export default function ComparisonTable() {
-    const features = [
-        { key: 'sdk', label: 'TypeScript SDK' },
-        { key: 'websocket', label: 'WebSocket Support' },
-        { key: 'restApi', label: 'REST API' },
-        { key: 'historicalData', label: 'Historical Data' },
-        { key: 'nftSupport', label: 'NFT Support' },
-        { key: 'defiSupport', label: 'DeFi Support' },
-        { key: 'crossChain', label: 'Cross-Chain' },
-    ];
-
     const getWinner = (key) => {
         if (key === 'chainsCount') return 'covalent';
         if (key === 'rateLimit') return 'mobula';
         if (key === 'startingPrice') return 'alchemy';
+        if (key === 'historicalDataYears') return 'covalent';
         return null;
     };
 
@@ -22,7 +13,7 @@ export default function ComparisonTable() {
         <div className="table-container">
             <div className="table-header">
                 <div className="table-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                         <path d="M3 3h18v18H3z" />
                         <path d="M3 9h18" />
                         <path d="M3 15h18" />
@@ -202,18 +193,24 @@ export default function ComparisonTable() {
                         <tr>
                             <td>
                                 <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                         <path d="M3 3v18h18" />
                                         <path d="M18 9l-5 5-4-4-6 6" />
                                     </svg>
-                                    <span>Historical Data Depth</span>
+                                    <span>Historical Data</span>
                                 </div>
                             </td>
-                            {providers.map(p => (
-                                <td key={p.id}>
-                                    <span className="value">{p.historicalDataDepth}</span>
-                                </td>
-                            ))}
+                            {providers.map(p => {
+                                const isBest = p.historicalDataYears === Math.max(...providers.map(pr => pr.historicalDataYears));
+                                return (
+                                    <td key={p.id} className={isBest ? 'winner-cell' : ''}>
+                                        <span className="value" style={{ color: isBest ? p.color : 'inherit' }}>
+                                            {p.historicalDataYears}+ years
+                                        </span>
+                                        {isBest && <span className="winner-badge">Best</span>}
+                                    </td>
+                                );
+                            })}
                         </tr>
                         <tr>
                             <td>
@@ -240,7 +237,7 @@ export default function ComparisonTable() {
                         <tr>
                             <td>
                                 <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                         <path d="M2 10h20" />
                                     </svg>
@@ -255,40 +252,6 @@ export default function ComparisonTable() {
                                 </td>
                             ))}
                         </tr>
-
-                        {/* Feature rows */}
-                        <tr className="section-header">
-                            <td colSpan={providers.length + 1}>
-                                <strong>Features</strong>
-                            </td>
-                        </tr>
-                        {features.map(feature => (
-                            <tr key={feature.key}>
-                                <td>
-                                    <div className="metric-cell">
-                                        <span>{feature.label}</span>
-                                    </div>
-                                </td>
-                                {providers.map(p => (
-                                    <td key={p.id}>
-                                        {p.features[feature.key] ? (
-                                            <span className="check">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                                    <polyline points="20,6 9,17 4,12" />
-                                                </svg>
-                                            </span>
-                                        ) : (
-                                            <span className="cross">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                                </svg>
-                                            </span>
-                                        )}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
                     </tbody>
                 </table>
             </div>

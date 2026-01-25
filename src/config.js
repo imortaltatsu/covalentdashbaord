@@ -1,7 +1,6 @@
 export const config = {
   covalent: {
     apiKey: import.meta.env.VITE_COVALENT_API_KEY || '',
-    baseUrl: 'https://api.covalenthq.com/v1',
   },
   alchemy: {
     apiKey: import.meta.env.VITE_ALCHEMY_API_KEY || '',
