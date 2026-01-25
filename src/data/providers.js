@@ -19,15 +19,8 @@ export const providers = [
       sdkLanguages: 'TS, Python, Go',
       slaUptime: '99.99%',
     },
-    latencyBenchmarks: {
-      balanceLookup: 85,
-      historicalTxns: 110,
-      nftMetadata: 95,
-      tokenPrices: 55,
-    },
     historicalDataDepth: 'Full History',
     historicalDataYears: 10,
-    ttfv: 78,
     schemaNormalization: 'High',
     uniqueFeatures: {
       nameResolution: true,
@@ -36,12 +29,6 @@ export const providers = [
       multiChainFormat: true,
       utilityFunctions: true,
     },
-    pricing: [
-      { tier: 'Free', credits: '100K', price: '$0', rps: '5' },
-      { tier: 'Analyst', credits: '1M', price: '$49/mo', rps: '50' },
-      { tier: 'Builder', credits: '5M', price: '$199/mo', rps: '100' },
-      { tier: 'Enterprise', credits: 'Unlimited', price: 'Custom', rps: 'Custom' },
-    ],
   },
   {
     id: 'alchemy',
@@ -62,15 +49,8 @@ export const providers = [
       sdkLanguages: 'JS, Python',
       slaUptime: '99.99%',
     },
-    latencyBenchmarks: {
-      balanceLookup: 75,
-      historicalTxns: 95,
-      nftMetadata: 80,
-      tokenPrices: 50,
-    },
     historicalDataDepth: 'Full History',
     historicalDataYears: 10,
-    ttfv: 68,
     schemaNormalization: 'Medium',
     uniqueFeatures: {
       nameResolution: false,
@@ -79,11 +59,6 @@ export const providers = [
       multiChainFormat: false,
       utilityFunctions: false,
     },
-    pricing: [
-      { tier: 'Free', credits: '30M CUs', price: '$0', rps: '25' },
-      { tier: 'Pay As You Go', credits: 'Unlimited', price: '$0.45/1M CUs', rps: '300' },
-      { tier: 'Enterprise', credits: 'Custom', price: 'Custom', rps: 'Custom' },
-    ],
   },
   {
     id: 'mobula',
@@ -104,15 +79,8 @@ export const providers = [
       sdkLanguages: 'TS, Python, JS',
       slaUptime: '99.9%',
     },
-    latencyBenchmarks: {
-      balanceLookup: 65,
-      historicalTxns: 85,
-      nftMetadata: 120,
-      tokenPrices: 40,
-    },
     historicalDataDepth: 'Limited',
     historicalDataYears: 2,
-    ttfv: 58,
     schemaNormalization: 'Medium',
     uniqueFeatures: {
       nameResolution: false,
@@ -121,60 +89,5 @@ export const providers = [
       multiChainFormat: false,
       utilityFunctions: false,
     },
-    pricing: [
-      { tier: 'Free', credits: '10K', price: '$0', rps: 'Unlimited' },
-      { tier: 'Start-up', credits: '125K', price: '$50/mo', rps: 'Unlimited' },
-      { tier: 'Growth', credits: '1.25M', price: '$400/mo', rps: 'Unlimited' },
-      { tier: 'Enterprise', credits: 'Unlimited', price: '$750+/mo', rps: 'Unlimited' },
-    ],
   },
 ];
-
-// Metrics configuration for comparison
-export const metricsConfig = [
-  {
-    key: 'chainsCount',
-    label: 'Chains Covered',
-    description: 'Number of unique blockchains indexed',
-    unit: ' chains',
-    higherIsBetter: true,
-  },
-  {
-    key: 'startingPrice',
-    label: 'Starting Price',
-    description: 'Entry-level paid tier monthly cost',
-    unit: '/mo',
-    prefix: '$',
-    higherIsBetter: false,
-  },
-  {
-    key: 'rateLimit',
-    label: 'Rate Limit',
-    description: 'Requests per second allowed',
-    unit: ' RPS',
-    higherIsBetter: true,
-  },
-  {
-    key: 'endpoints',
-    label: 'API Endpoints',
-    description: 'Number of API endpoints available',
-    unit: '+',
-    higherIsBetter: true,
-  },
-];
-
-// Chart colors for each provider
-export const chartColors = {
-  covalent: {
-    bg: 'rgba(255, 107, 53, 0.6)',
-    border: 'rgba(255, 107, 53, 1)',
-  },
-  alchemy: {
-    bg: 'rgba(0, 82, 255, 0.6)',
-    border: 'rgba(0, 82, 255, 1)',
-  },
-  mobula: {
-    bg: 'rgba(139, 92, 246, 0.6)',
-    border: 'rgba(139, 92, 246, 1)',
-  },
-};

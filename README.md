@@ -23,14 +23,19 @@ A benchmarking tool for comparing blockchain data API providers: Covalent, Alche
 
 1. Clone the repository
 2. Install dependencies:
+
    ```bash
    npm install
    ```
+
 3. Copy environment file and add API keys:
+
    ```bash
    cp .env.example .env
    ```
+
 4. Edit `.env` with your API keys:
+
    ```
    VITE_COVALENT_API_KEY=your_key
    VITE_ALCHEMY_API_KEY=your_key
@@ -74,6 +79,7 @@ src/
 ## API Clients
 
 Each provider has a dedicated client with methods for:
+
 - `getTokenBalances()` - Fetch wallet token balances
 - `getTransactions()` - Query transaction history
 - `getNFTs()` - Retrieve NFT holdings
@@ -82,6 +88,7 @@ Each provider has a dedicated client with methods for:
 ## Benchmark Runner
 
 The benchmark runner executes tests with:
+
 - Configurable iteration count (5-100)
 - Rate limiting between requests
 - Progress callbacks for UI updates

@@ -1,38 +1,62 @@
-import { ApiClient } from './base.js';
 import { config } from '../../config.js';
 
 const TEST_WALLET = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+const BASE_URL = config.mobula.baseUrl;
 
-class MobulaClient extends ApiClient {
+class MobulaClient {
   constructor(apiKey) {
-    super(config.mobula.baseUrl, {
-      timeout: config.benchmark.timeoutMs,
-      headers: {
-        'Authorization': apiKey,
-        'Content-Type': 'application/json',
-      },
-    });
     this.apiKey = apiKey;
+    this.timeout = 30000;
   }
 
-  async getWalletPortfolio(address = TEST_WALLET) {
-    return this.get(`/wallet/portfolio?wallet=${address}`);
+  async request(endpoint) {
+    const startTime = performance.now();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const latency = performance.now() - startTime;
+
+      if (!response.ok) {
+        const err = new Error(`HTTP ${response.status}: ${response.statusText}`);
+        err.status = response.status;
+        err.latency = latency;
+        throw err;
+      }
+
+      const data = await response.json();
+      return { data, latency, status: response.status };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      err.latency = performance.now() - startTime;
+      throw err;
+    }
   }
 
-  async getWalletTransactions(address = TEST_WALLET) {
-    return this.get(`/wallet/transactions?wallet=${address}&limit=20`);
+  async getTokenBalances(address = TEST_WALLET) {
+    return this.request(`/wallet/portfolio?wallet=${address}`);
   }
 
-  async getMarketData(asset = 'ethereum') {
-    return this.get(`/market/data?asset=${asset}`);
+  async getTransactions(address = TEST_WALLET) {
+    return this.request(`/wallet/transactions?wallet=${address}&limit=20`);
+  }
+
+  async getNFTs(address = TEST_WALLET) {
+    return this.request(`/wallet/nfts?wallet=${address}`);
   }
 
   async getTokenPrices(asset = 'ethereum') {
-    return this.get(`/market/data?asset=${asset}`);
-  }
-
-  async getMultipleAssets(assets = ['bitcoin', 'ethereum']) {
-    return this.get(`/market/multi-data?assets=${assets.join(',')}`);
+    return this.request(`/market/data?asset=${asset}`);
   }
 
   isConfigured() {
