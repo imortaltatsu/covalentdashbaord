@@ -1,4 +1,4 @@
-import { CovalentClient as SDK } from '@covalenthq/client-sdk';
+import { GoldRushClient } from '@covalenthq/client-sdk';
 import { config } from '../../config.js';
 
 const TEST_WALLET = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
@@ -6,7 +6,7 @@ const TEST_WALLET = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 class CovalentClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.sdk = apiKey ? new SDK(apiKey) : null;
+    this.sdk = apiKey ? new GoldRushClient(apiKey) : null;
   }
 
   async withLatency(fn) {

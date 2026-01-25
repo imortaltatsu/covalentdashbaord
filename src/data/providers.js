@@ -11,8 +11,8 @@ export const providers = [
     gradient: 'linear-gradient(135deg, #ff6b35 0%, #f7931a 50%, #ffc107 100%)',
     metrics: {
       chainsCount: 225,
-      freeTierCredits: 25000,
-      startingPrice: 50,
+      freeTierCredits: 100000,
+      startingPrice: 0,
       rateLimit: 50,
       endpoints: 100,
       dataFreshness: 'Real-time',
@@ -29,11 +29,18 @@ export const providers = [
     historicalDataYears: 10,
     ttfv: 78,
     schemaNormalization: 'High',
+    uniqueFeatures: {
+      nameResolution: true,
+      realtimeStreaming: true,
+      autoPagination: true,
+      multiChainFormat: true,
+      utilityFunctions: true,
+    },
     pricing: [
-      { tier: 'Free Trial', credits: '25K', price: '$0', rps: '4' },
-      { tier: 'Premium', credits: '50K', price: '$50/mo', rps: '50' },
-      { tier: 'Professional', credits: '300K', price: '$250/mo', rps: '50' },
-      { tier: 'Platinum', credits: '650K', price: '$500/mo', rps: '50' },
+      { tier: 'Free', credits: '100K', price: '$0', rps: '5' },
+      { tier: 'Analyst', credits: '1M', price: '$49/mo', rps: '50' },
+      { tier: 'Builder', credits: '5M', price: '$199/mo', rps: '100' },
+      { tier: 'Enterprise', credits: 'Unlimited', price: 'Custom', rps: 'Custom' },
     ],
   },
   {
@@ -65,6 +72,13 @@ export const providers = [
     historicalDataYears: 10,
     ttfv: 68,
     schemaNormalization: 'Medium',
+    uniqueFeatures: {
+      nameResolution: false,
+      realtimeStreaming: false,
+      autoPagination: false,
+      multiChainFormat: false,
+      utilityFunctions: false,
+    },
     pricing: [
       { tier: 'Free', credits: '30M CUs', price: '$0', rps: '25' },
       { tier: 'Pay As You Go', credits: 'Unlimited', price: '$0.45/1M CUs', rps: '300' },
@@ -100,6 +114,13 @@ export const providers = [
     historicalDataYears: 2,
     ttfv: 58,
     schemaNormalization: 'Medium',
+    uniqueFeatures: {
+      nameResolution: false,
+      realtimeStreaming: false,
+      autoPagination: false,
+      multiChainFormat: false,
+      utilityFunctions: false,
+    },
     pricing: [
       { tier: 'Free', credits: '10K', price: '$0', rps: 'Unlimited' },
       { tier: 'Start-up', credits: '125K', price: '$50/mo', rps: 'Unlimited' },

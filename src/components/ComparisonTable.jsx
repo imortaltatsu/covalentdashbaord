@@ -4,10 +4,11 @@ export default function ComparisonTable() {
     const getWinner = (key) => {
         if (key === 'chainsCount') return 'covalent';
         if (key === 'rateLimit') return 'mobula';
-        if (key === 'startingPrice') return 'alchemy';
         if (key === 'historicalDataYears') return 'covalent';
         return null;
     };
+
+    const hasFreeTier = (p) => p.metrics.startingPrice === 0;
 
     return (
         <div className="table-container">
@@ -46,7 +47,7 @@ export default function ComparisonTable() {
                         <tr>
                             <td>
                                 <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                                     </svg>
@@ -78,12 +79,12 @@ export default function ComparisonTable() {
                             {providers.map(p => (
                                 <td
                                     key={p.id}
-                                    className={getWinner('startingPrice') === p.id ? 'winner-cell' : ''}
+                                    className={hasFreeTier(p) ? 'winner-cell' : ''}
                                 >
-                                    <span className="value" style={{ color: getWinner('startingPrice') === p.id ? p.color : 'inherit' }}>
-                                        ${p.metrics.startingPrice}/mo
+                                    <span className="value" style={{ color: hasFreeTier(p) ? p.color : 'inherit' }}>
+                                        {p.metrics.startingPrice === 0 ? 'Free' : `$${p.metrics.startingPrice}/mo`}
                                     </span>
-                                    {getWinner('startingPrice') === p.id && <span className="winner-badge">Best</span>}
+                                    {hasFreeTier(p) && <span className="winner-badge">Free Tier</span>}
                                 </td>
                             ))}
                         </tr>
@@ -215,28 +216,6 @@ export default function ComparisonTable() {
                         <tr>
                             <td>
                                 <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12,6 12,12 16,14" />
-                                    </svg>
-                                    <span>Time-to-First-Value</span>
-                                </div>
-                            </td>
-                            {providers.map(p => {
-                                const isBest = p.ttfv === Math.min(...providers.map(pr => pr.ttfv));
-                                return (
-                                    <td key={p.id} className={isBest ? 'winner-cell' : ''}>
-                                        <span className="value" style={{ color: isBest ? p.color : 'inherit' }}>
-                                            {p.ttfv}ms
-                                        </span>
-                                        {isBest && <span className="winner-badge">Best</span>}
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="metric-cell">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                         <path d="M2 10h20" />
@@ -249,6 +228,92 @@ export default function ComparisonTable() {
                                     <span className={p.schemaNormalization === 'High' ? 'badge-success' : 'badge-neutral'}>
                                         {p.schemaNormalization}
                                     </span>
+                                </td>
+                            ))}
+                        </tr>
+
+                        <tr className="section-header">
+                            <td colSpan={providers.length + 1}>
+                                <strong>Unique Capabilities</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div className="metric-cell">
+                                    <span>Name Resolution (ENS, Lens, etc.)</span>
+                                </div>
+                            </td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    {p.uniqueFeatures?.nameResolution ? (
+                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
+                                    ) : (
+                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
+                                    )}
+                                </td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td>
+                                <div className="metric-cell">
+                                    <span>Real-time WebSocket Streaming</span>
+                                </div>
+                            </td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    {p.uniqueFeatures?.realtimeStreaming ? (
+                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
+                                    ) : (
+                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
+                                    )}
+                                </td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td>
+                                <div className="metric-cell">
+                                    <span>Auto-Pagination (Generators)</span>
+                                </div>
+                            </td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    {p.uniqueFeatures?.autoPagination ? (
+                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
+                                    ) : (
+                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
+                                    )}
+                                </td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td>
+                                <div className="metric-cell">
+                                    <span>Multi-Chain Input Formats</span>
+                                </div>
+                            </td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    {p.uniqueFeatures?.multiChainFormat ? (
+                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
+                                    ) : (
+                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
+                                    )}
+                                </td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td>
+                                <div className="metric-cell">
+                                    <span>Built-in Utility Functions</span>
+                                </div>
+                            </td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    {p.uniqueFeatures?.utilityFunctions ? (
+                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
+                                    ) : (
+                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
+                                    )}
                                 </td>
                             ))}
                         </tr>
