@@ -52,7 +52,9 @@ export function useBenchmark() {
       return;
     }
 
-    const totalTests = configuredProviders.length * Object.keys(TestType).length;
+    const testsPerProvider = Object.keys(TestType).length;
+    const totalTests = configuredProviders.length * testsPerProvider;
+    const totalRequests = totalTests * iterations;
     let completedTests = 0;
 
     const updateResults = (providerName, testType, testResult) => {
@@ -72,13 +74,19 @@ export function useBenchmark() {
     const runner = createBenchmarkRunner({
       iterations,
       onProgress: (prog) => {
+        // Global request-level progress across all providers and test types:
+        // e.g. 3 providers * 4 tests * 10 iterations = 120 total requests
+        const completedRequests = (completedTests * iterations) + prog.iteration;
+
         setProgress({
           provider: prog.provider,
           testType: prog.testType,
-          iteration: prog.iteration,
-          total: prog.total,
+          iteration: completedRequests,
+          total: totalRequests,
           completedTests,
           totalTests,
+          perTestIteration: prog.iteration,
+          perTestTotal: prog.total,
         });
       },
       onResult: (result) => {

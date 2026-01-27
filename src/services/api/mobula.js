@@ -6,7 +6,7 @@ const BASE_URL = config.mobula.baseUrl;
 class MobulaClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.timeout = 30000;
+    this.timeout = config.benchmark.timeoutMs;
   }
 
   async request(endpoint) {

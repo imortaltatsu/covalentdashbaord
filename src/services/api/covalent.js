@@ -6,7 +6,7 @@ const BASE_URL = 'https://api.covalenthq.com/v1';
 class CovalentClient {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.timeout = 30000;
+    this.timeout = config.benchmark.timeoutMs;
   }
 
   async request(endpoint) {

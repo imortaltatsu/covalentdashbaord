@@ -65,15 +65,15 @@ export const providers = [
     name: 'Mobula',
     initials: 'MB',
     tagline: 'Real-time Trading Infra',
-    description: 'Low-latency trading and wallet infrastructure for 88+ chains.',
+    description: 'Low-latency trading and wallet infrastructure for 88+ chains with generous free usage.',
     website: 'https://mobula.io',
     color: '#8b5cf6',
     gradient: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
     metrics: {
       chainsCount: 88,
-      freeTierCredits: 10000,
-      startingPrice: 50,
-      rateLimit: 999,
+      freeTierCredits: 10000, // Free plan includes 10k monthly credits
+      startingPrice: 0,       // Free tier available
+      rateLimit: 999,         // Effectively uncapped per docs "no rate limit"
       endpoints: 50,
       dataFreshness: 'Real-time',
       sdkLanguages: 'TS, Python, JS',
