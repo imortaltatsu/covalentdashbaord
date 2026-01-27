@@ -12,10 +12,26 @@ export const TestType = {
 
 export class BenchmarkRunner {
   constructor(options = {}) {
-    this.iterations = options.iterations || config.benchmark.defaultIterations;
-    this.delayMs = options.delayMs || config.benchmark.requestDelayMs;
-    this.onProgress = options.onProgress || (() => {});
-    this.onResult = options.onResult || (() => {});
+    const {
+      iterations,
+      delayMs,
+      onProgress,
+      onResult,
+    } = options;
+
+    // Clamp iterations and allow 0-delay runs for fast local benchmarks/tests
+    if (Number.isInteger(iterations) && iterations > 0) {
+      this.iterations = Math.min(iterations, config.benchmark.maxIterations);
+    } else {
+      this.iterations = config.benchmark.defaultIterations;
+    }
+
+    this.delayMs = typeof delayMs === 'number' && delayMs >= 0
+      ? delayMs
+      : config.benchmark.requestDelayMs;
+
+    this.onProgress = onProgress || (() => {});
+    this.onResult = onResult || (() => {});
     this.aborted = false;
   }
 
@@ -68,12 +84,28 @@ export class BenchmarkRunner {
   }
 
   async executeTest(testFn, iteration) {
+    const hasPerfNow = typeof performance !== 'undefined' && typeof performance.now === 'function';
+    const start = hasPerfNow ? performance.now() : Date.now();
+
     try {
-      const { latency, status } = await testFn();
-      return { success: true, latency, status, iteration };
+      const result = await testFn();
+      const end = hasPerfNow ? performance.now() : Date.now();
+      const latency = end - start;
+
+      return {
+        success: true,
+        latency,
+        status: result?.status,
+        iteration,
+        raw: result,
+      };
     } catch (err) {
+      const end = hasPerfNow ? performance.now() : Date.now();
+      const latency = end - start;
+
       return {
         success: false,
+        latency,
         error: err.message,
         code: err.code || err.status,
         iteration,

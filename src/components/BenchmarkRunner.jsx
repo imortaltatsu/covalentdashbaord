@@ -302,11 +302,19 @@ function BenchmarkResults({ results }) {
                 if (!testResult || testResult.error) {
                   return <td key={name} className="na">N/A</td>;
                 }
+
+                const { stats, successRate } = testResult;
                 const isBest = findBestProvider(providers, key) === name;
+
                 return (
                   <td key={name} className={isBest ? 'best' : ''}>
-                    <span className="latency">{formatLatency(testResult.stats.median)}</span>
-                    <span className="success-rate">{testResult.successRate}%</span>
+                    <span className="latency">
+                      {formatLatency(stats.mean)} <span className="latency-label">avg</span>
+                    </span>
+                    <span className="latency-secondary">
+                      median {formatLatency(stats.median)}
+                    </span>
+                    <span className="success-rate">{successRate}%</span>
                   </td>
                 );
               })}
@@ -365,6 +373,17 @@ function BenchmarkResults({ results }) {
           display: block;
         }
 
+        .results-table .latency-label {
+          font-size: 0.65rem;
+          color: var(--text-muted);
+        }
+
+        .results-table .latency-secondary {
+          display: block;
+          font-size: 0.7rem;
+          color: var(--text-muted);
+        }
+
         .results-table .success-rate {
           font-size: 0.65rem;
           color: var(--text-muted);
@@ -380,12 +399,12 @@ function BenchmarkResults({ results }) {
 
 function findBestProvider(providers, testKey) {
   let best = null;
-  let bestMedian = Number.POSITIVE_INFINITY;
+  let bestMean = Number.POSITIVE_INFINITY;
 
   for (const [name, data] of providers) {
     const testResult = data[testKey];
-    if (testResult?.stats?.median && testResult.stats.median < bestMedian) {
-      bestMedian = testResult.stats.median;
+    if (testResult?.stats?.mean && testResult.stats.mean < bestMean) {
+      bestMean = testResult.stats.mean;
       best = name;
     }
   }
