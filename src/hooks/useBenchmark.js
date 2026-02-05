@@ -27,7 +27,7 @@ function resetClientInstances() {
     { name: 'covalent', client: getCovalentClient() },
     { name: 'alchemy', client: getAlchemyClient() },
     { name: 'mobula', client: getMobulaClient() },
-    // { name: 'codex', client: getCodexClient() },
+    { name: 'codex', client: getCodexClient() },
   ];
 }
 
