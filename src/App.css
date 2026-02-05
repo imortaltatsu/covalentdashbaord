@@ -15,12 +15,20 @@
 
 .story-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   /* Focused, single column */
   display: flex;
   flex-direction: column;
   gap: 60px;
   align-items: center;
+}
+
+/* ... existing styles ... */
+
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 /* -- Hero Section -- */
@@ -313,8 +321,9 @@
 
 .leaderboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
 }
 
 /* Scrollbar */

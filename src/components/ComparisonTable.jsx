@@ -1,319 +1,204 @@
 import { activeProviders as providers } from '../data/providers';
 
+const WinnerBadge = ({ type }) => (
+    <span className={`badge ${type === 'best' ? 'badge-best' : 'badge-free'}`}>
+        {type === 'best' ? 'Best' : 'Free Tier'}
+    </span>
+);
+
+const BooleanCell = ({ isTrue }) => (
+    <div className={`bool-icon ${isTrue ? 'bool-true' : 'bool-false'}`}>
+        {isTrue ? '✓' : '—'}
+    </div>
+);
+
 export default function ComparisonTable() {
     const getWinner = (key) => {
         if (key === 'chainsCount') return 'covalent';
+        // Mobula has unlimited, so it wins rate limit
         if (key === 'rateLimit') return 'mobula';
-        if (key === 'historicalDataYears') return 'covalent';
+        // Shared win for historical data
+        if (key === 'historicalDataYears') return ['covalent', 'alchemy'];
         return null;
+    };
+
+    const isWinner = (providerId, key) => {
+        const winner = getWinner(key);
+        if (Array.isArray(winner)) return winner.includes(providerId);
+        return winner === providerId;
     };
 
     const hasFreeTier = (p) => p.metrics.startingPrice === 0;
 
     return (
-        <div className="glass-card table-container">
-            <div className="table-header">
-                <div className="table-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 3h18v18H3z" />
-                        <path d="M3 9h18" />
-                        <path d="M3 15h18" />
-                        <path d="M9 3v18" />
-                        <path d="M15 3v18" />
-                    </svg>
-                </div>
-                <div>
-                    <h3 className="table-title">Provider Analysis</h3>
-                    <p className="table-subtitle">Comprehensive side-by-side technical evaluation</p>
-                </div>
+        <div className="table-container fade-in-up">
+            <div className="table-header-row">
+                <h3 className="table-heading">Provider Analysis</h3>
+                <p className="table-subheading">Technical Capability Comparison</p>
             </div>
 
-            <div className="table-scroll">
-                <table className="comparison-table">
+            <div className="table-wrapper">
+                <table className="glass-table">
                     <thead>
                         <tr>
-                            <th>Metric</th>
+                            <th className="sticky-col">Metric</th>
                             {providers.map(p => (
                                 <th key={p.id}>
-                                    <span className="provider-header-cell" style={{ color: p.color }}>
-                                        <span className="provider-dot" style={{ background: p.color }} />
-                                        {p.name}
-                                    </span>
+                                    <div className="th-content">
+                                        <div className="provider-dot" style={{ background: p.color }} />
+                                        <span style={{ color: p.color }}>{p.name}</span>
+                                    </div>
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
+                        {/* Chains */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                    </svg>
-                                    <span>Chains Covered</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Chains Covered</td>
                             {providers.map(p => (
-                                <td
-                                    key={p.id}
-                                    className={getWinner('chainsCount') === p.id ? 'winner-cell' : ''}
-                                >
-                                    <span className="value" style={{ color: getWinner('chainsCount') === p.id ? p.color : 'inherit' }}>
-                                        {p.metrics.chainsCount}+
+                                <td key={p.id} className={isWinner(p.id, 'chainsCount') ? 'highlight-cell' : ''}>
+                                    <span className="cell-value">{p.metrics.chainsCount}+</span>
+                                    {isWinner(p.id, 'chainsCount') && <WinnerBadge type="best" />}
+                                </td>
+                            ))}
+                        </tr>
+
+                        {/* Starting Price */}
+                        <tr>
+                            <td className="sticky-col">Starting Price</td>
+                            {providers.map(p => (
+                                <td key={p.id}>
+                                    <span className="cell-value">
+                                        {p.metrics.startingPrice === 0 ? 'Free' : `$${p.metrics.startingPrice}`}
                                     </span>
-                                    {getWinner('chainsCount') === p.id && <span className="winner-badge">Best</span>}
+                                    {hasFreeTier(p) && <WinnerBadge type="free" />}
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Rate Limit */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <line x1="12" y1="1" x2="12" y2="23" />
-                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                                    </svg>
-                                    <span>Starting Price</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Rate Limit (RPS)</td>
                             {providers.map(p => (
-                                <td
-                                    key={p.id}
-                                    className={hasFreeTier(p) ? 'winner-cell' : ''}
-                                >
-                                    <span className="value" style={{ color: hasFreeTier(p) ? p.color : 'inherit' }}>
-                                        {p.metrics.startingPrice === 0 ? 'Free' : `$${p.metrics.startingPrice}/mo`}
+                                <td key={p.id} className={isWinner(p.id, 'rateLimit') ? 'highlight-cell' : ''}>
+                                    <span className="cell-value">
+                                        {p.metrics.rateLimit ? `${p.metrics.rateLimit} RPS` : 'Unlimited'}
                                     </span>
-                                    {hasFreeTier(p) && <span className="winner-badge">Free Tier</span>}
+                                    {isWinner(p.id, 'rateLimit') && <WinnerBadge type="best" />}
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Free Credits */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-                                    </svg>
-                                    <span>Rate Limit (RPS)</span>
-                                </div>
-                            </td>
-                            {providers.map(p => (
-                                <td
-                                    key={p.id}
-                                    className={getWinner('rateLimit') === p.id ? 'winner-cell' : ''}
-                                >
-                                    <span className="value" style={{ color: getWinner('rateLimit') === p.id ? p.color : 'inherit' }}>
-                                        {p.metrics.rateLimit === null ? 'Unlimited' : `${p.metrics.rateLimit} RPS`}
-                                    </span>
-                                    {getWinner('rateLimit') === p.id && <span className="winner-badge">Best</span>}
-                                </td>
-                            ))}
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="17,8 12,3 7,8" />
-                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                    <span>Free Tier</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Free Tier Units</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className="value">{formatCredits(p.metrics.freeTierCredits)}</span>
+                                    <span className="cell-value-secondary">{formatCredits(p.metrics.freeTierCredits)}</span>
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Endpoints */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M4 11a9 9 0 0 1 9 9" />
-                                        <path d="M4 4a16 16 0 0 1 16 16" />
-                                        <circle cx="5" cy="19" r="1" />
-                                    </svg>
-                                    <span>API Endpoints</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">API Endpoints</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className="value">{p.metrics.endpoints}+</span>
+                                    <span className="cell-value">{p.metrics.endpoints}+</span>
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Data Freshness */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12,6 12,12 16,14" />
-                                    </svg>
-                                    <span>Data Freshness</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Data Freshness</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className="badge-success">{p.metrics.dataFreshness}</span>
+                                    <span className="freshness-tag">{p.metrics.dataFreshness}</span>
                                 </td>
                             ))}
                         </tr>
+
+                        {/* SDKs */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M16 18l2-2v-6l-2-2H8l-2 2v6l2 2h8z" />
-                                        <path d="M12 2v4" />
-                                        <path d="M12 18v4" />
-                                    </svg>
-                                    <span>SDK Languages</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">SDK Support</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className="value">{p.metrics.sdkLanguages}</span>
+                                    <span className="cell-text-sm">{p.metrics.sdkLanguages}</span>
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Uptime */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                    </svg>
-                                    <span>SLA Uptime</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">SLA Uptime</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className="badge-success">{p.metrics.slaUptime}</span>
+                                    <span className="uptime-tag">{p.metrics.slaUptime}</span>
                                 </td>
                             ))}
                         </tr>
+
+                        {/* Historical Data */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                        <path d="M3 3v18h18" />
-                                        <path d="M18 9l-5 5-4-4-6 6" />
-                                    </svg>
-                                    <span>Historical Data</span>
-                                </div>
-                            </td>
-                            {providers.map(p => {
-                                const isBest = p.historicalDataYears === Math.max(...providers.map(pr => pr.historicalDataYears));
-                                return (
-                                    <td key={p.id} className={isBest ? 'winner-cell' : ''}>
-                                        <span className="value" style={{ color: isBest ? p.color : 'inherit' }}>
-                                            {p.historicalDataYears}+ years
-                                        </span>
-                                        {isBest && <span className="winner-badge">Best</span>}
-                                    </td>
-                                );
-                            })}
+                            <td className="sticky-col">History Depth</td>
+                            {providers.map(p => (
+                                <td key={p.id} className={isWinner(p.id, 'historicalDataYears') ? 'highlight-cell' : ''}>
+                                    <span className="cell-value">{p.historicalDataYears}+ Years</span>
+                                    {isWinner(p.id, 'historicalDataYears') && <WinnerBadge type="best" />}
+                                </td>
+                            ))}
                         </tr>
+
+                        {/* Normalization */}
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                        <path d="M2 10h20" />
-                                    </svg>
-                                    <span>Schema Normalization</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Schema Quality</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    <span className={p.schemaNormalization === 'High' ? 'badge-success' : 'badge-neutral'}>
+                                    <span className={`quality-tag ${p.schemaNormalization.toLowerCase()}`}>
                                         {p.schemaNormalization}
                                     </span>
                                 </td>
                             ))}
                         </tr>
 
-                        <tr className="section-header">
-                            <td colSpan={providers.length + 1}>
-                                <strong>Unique Capabilities</strong>
-                            </td>
+                        {/* SECTION: Unique Caps */}
+                        <tr className="section-spacer"><td colSpan={providers.length + 1}></td></tr>
+                        <tr className="section-row">
+                            <td className="sticky-col">Unique Capabilities</td>
+                            <td colSpan={providers.length}></td>
                         </tr>
+
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <span>Name Resolution (ENS, Lens, etc.)</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Name Resolution</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    {p.uniqueFeatures?.nameResolution ? (
-                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
-                                    ) : (
-                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
-                                    )}
+                                    <BooleanCell isTrue={!!p.uniqueFeatures?.nameResolution} />
                                 </td>
                             ))}
                         </tr>
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <span>Real-time WebSocket Streaming</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Real-time Stream</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    {p.uniqueFeatures?.realtimeStreaming ? (
-                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
-                                    ) : (
-                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
-                                    )}
+                                    <BooleanCell isTrue={!!p.uniqueFeatures?.realtimeStreaming} />
                                 </td>
                             ))}
                         </tr>
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <span>Auto-Pagination (Generators)</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Auto-Pagination</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    {p.uniqueFeatures?.autoPagination ? (
-                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
-                                    ) : (
-                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
-                                    )}
+                                    <BooleanCell isTrue={!!p.uniqueFeatures?.autoPagination} />
                                 </td>
                             ))}
                         </tr>
                         <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <span>Multi-Chain Input Formats</span>
-                                </div>
-                            </td>
+                            <td className="sticky-col">Multi-Chain Input</td>
                             {providers.map(p => (
                                 <td key={p.id}>
-                                    {p.uniqueFeatures?.multiChainFormat ? (
-                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
-                                    ) : (
-                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
-                                    )}
-                                </td>
-                            ))}
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="metric-cell">
-                                    <span>Built-in Utility Functions</span>
-                                </div>
-                            </td>
-                            {providers.map(p => (
-                                <td key={p.id}>
-                                    {p.uniqueFeatures?.utilityFunctions ? (
-                                        <span className="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><polyline points="20,6 9,17 4,12" /></svg></span>
-                                    ) : (
-                                        <span className="cross"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></span>
-                                    )}
+                                    <BooleanCell isTrue={!!p.uniqueFeatures?.multiChainFormat} />
                                 </td>
                             ))}
                         </tr>
@@ -322,234 +207,226 @@ export default function ComparisonTable() {
             </div>
 
             <style>{`
-        .table-container {
-          background: var(--bg-glass);
-          border: 1px solid var(--border-subtle);
-          border-radius: 24px;
-          padding: 32px;
-          margin-top: 40px;
-          backdrop-filter: var(--glass-blur);
-          -webkit-backdrop-filter: var(--glass-blur);
-          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-        }
-        
-        .table-header {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 32px;
-          padding-bottom: 24px;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-        
-        .table-icon {
-          width: 48px;
-          height: 48px;
-          background: rgba(0, 255, 148, 0.1);
-          border: 1px solid rgba(0, 255, 148, 0.2);
-          border-radius: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--accent-success);
-          box-shadow: 0 0 15px rgba(0, 255, 148, 0.1);
-        }
-        
-        .table-title {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #fff;
-          margin: 0 0 4px 0;
-          letter-spacing: -0.02em;
-        }
-        
-        .table-subtitle {
-          color: var(--text-secondary);
-          font-size: 0.9rem;
-          margin: 0;
-        }
-        
-        .table-scroll {
-          overflow-x: auto;
-          margin: 0 -32px;
-          padding: 0 32px;
-          scroll-snap-type: x mandatory;
-        }
+                .table-container {
+                    margin-top: 60px;
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 24px;
+                    background: var(--bg-glass);
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    backdrop-filter: blur(20px);
+                }
 
-        .comparison-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-          text-align: left;
-          min-width: 800px; /* Ensure scroll gets triggered */
-        }
+                .table-header-row {
+                    padding: 32px;
+                    background: rgba(255, 255, 255, 0.02);
+                    border-bottom: 1px solid var(--border-subtle);
+                }
 
-        .comparison-table th,
-        .comparison-table td {
-          padding: 16px;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-        
-        /* Sticky First Column */
-        .comparison-table th:first-child,
-        .comparison-table td:first-child {
-          position: sticky;
-          left: 0;
-          background: var(--bg-glass); /* Fallback */
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          z-index: 10;
-          border-right: 1px solid var(--border-subtle);
-        }
-        
-        .comparison-table th:first-child {
-          z-index: 20; /* Higher than td sticky */
-          background: rgba(10, 10, 10, 0.95); /* Opaque for header */
-        }
+                .table-heading {
+                    margin: 0;
+                    font-size: 1.25rem;
+                    color: #fff;
+                    font-weight: 600;
+                    letter-spacing: -0.01em;
+                }
 
-        .comparison-table td:first-child {
-          background: rgba(10, 10, 10, 0.85); /* Slightly opaque for legibility */
-        }
+                .table-subheading {
+                    margin: 4px 0 0 0;
+                    color: var(--text-secondary);
+                    font-size: 0.9rem;
+                }
 
-        .comparison-table th:not(:first-child),
-        .comparison-table td:not(:first-child) {
-          scroll-snap-align: start;
-        }
+                .table-wrapper {
+                    overflow-x: auto;
+                    width: 100%;
+                }
 
-        .comparison-table th {
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--text-tertiary);
-        .comparison-table td {
-          padding: 20px 16px;
-          border-bottom: 1px solid var(--border-subtle);
-          color: var(--text-secondary);
-          transition: background 0.2s;
-        }
+                .glass-table {
+                    width: 100%;
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    min-width: 800px;
+                }
 
-        .comparison-table tr:last-child td {
-          border-bottom: none;
-        }
+                .glass-table th, .glass-table td {
+                    padding: 18px 24px;
+                    text-align: left;
+                    border-bottom: 1px solid var(--border-subtle);
+                    vertical-align: middle;
+                }
 
-        .comparison-table tr:hover td {
-          background: rgba(255, 255, 255, 0.02);
-        }
-        
-        .provider-header-cell {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-weight: 700;
-          font-size: 1rem;
-          color: #fff !important;
-        }
-        
-        .provider-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          box-shadow: 0 0 10px currentColor;
-        }
-        
-        .metric-cell {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          color: var(--text-primary);
-          font-weight: 500;
-        }
-        
-        .metric-cell svg {
-          opacity: 0.5;
-          color: var(--text-tertiary);
-        }
-        
-        .value {
-          font-family: 'JetBrains Mono', monospace;
-          font-weight: 500;
-          color: var(--text-primary);
-          font-size: 0.95rem;
-        }
-        
-        .winner-cell {
-          background: linear-gradient(90deg, rgba(0, 255, 148, 0.03), transparent);
-          position: relative;
-        }
-        
-        .winner-cell::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 2px;
-          background: var(--accent-success);
-          opacity: 0.5;
-        }
-        
-        .winner-badge {
-          display: inline-flex;
-          align-items: center;
-          margin-left: 8px;
-          font-size: 0.65rem;
-          font-weight: 700;
-          padding: 2px 8px;
-          background: rgba(0, 255, 148, 0.15);
-          color: var(--accent-success);
-          border: 1px solid rgba(0, 255, 148, 0.2);
-          border-radius: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        
-        .check { 
-          color: var(--accent-success);
-          filter: drop-shadow(0 0 8px rgba(0,255,148,0.4));
-        }
-        
-        .cross { 
-          color: var(--text-tertiary); 
-          opacity: 0.2; 
-        }
-        
-        .section-header td {
-          padding: 32px 16px 16px;
-          text-transform: uppercase;
-          letter-spacing: 0.15em;
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: var(--accent-codex);
-          border-bottom: 1px solid var(--border-subtle);
-          background: linear-gradient(90deg, rgba(138, 43, 226, 0.05), transparent);
-        }
-        
-        .badge-success {
-          background: rgba(0, 255, 148, 0.1);
-          color: var(--accent-success);
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          border: 1px solid rgba(0, 255, 148, 0.1);
-        }
-        
-        .badge-neutral {
-          background: var(--bg-secondary);
-          color: var(--text-tertiary);
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-size: 0.8rem;
-          font-weight: 500;
-          border: 1px solid var(--border-subtle);
-        }
-      `}</style>
+                /* Sticky First Column */
+                .sticky-col {
+                    position: sticky;
+                    left: 0;
+                    background: #0A0A0A; /* Needs opaque bg to hide scroll under */
+                    z-index: 10;
+                    font-size: 0.9rem;
+                    color: var(--text-secondary);
+                    font-weight: 500;
+                    border-right: 1px solid var(--border-subtle);
+                    min-width: 200px;
+                }
+
+                .glass-table th.sticky-col {
+                    background: #0F0F0F;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
+                    color: var(--text-tertiary);
+                    z-index: 20;
+                }
+
+                /* Provider Headers */
+                .th-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                }
+
+                .provider-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px currentColor;
+                }
+
+                /* Cells */
+                .cell-value {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.95rem;
+                    color: #fff;
+                    font-weight: 500;
+                }
+
+                .cell-value-secondary {
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9rem;
+                    color: var(--text-secondary);
+                }
+
+                .cell-text-sm {
+                    font-size: 0.85rem;
+                    color: var(--text-secondary);
+                }
+
+                /* Highlight Winner */
+                .highlight-cell {
+                    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent);
+                }
+
+                /* Badges */
+                .badge {
+                    display: inline-block;
+                    margin-left: 10px;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    vertical-align: middle;
+                }
+
+                .badge-best {
+                    color: #FFD700;
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 1px solid rgba(255, 215, 0, 0.2);
+                }
+
+                .badge-free {
+                    color: var(--accent-success);
+                    background: rgba(0, 255, 148, 0.1);
+                    border: 1px solid rgba(0, 255, 148, 0.2);
+                }
+
+                /* Tags */
+                .freshness-tag, .uptime-tag {
+                    font-size: 0.8rem;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    background: rgba(255, 255, 255, 0.05);
+                    color: var(--text-primary);
+                }
+                
+                .uptime-tag {
+                    color: var(--accent-success);
+                    background: rgba(0, 255, 148, 0.05);
+                }
+
+                /* Quality Tags */
+                .quality-tag {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    padding: 4px 10px;
+                    border-radius: 100px;
+                }
+                .quality-tag.high {
+                    background: rgba(138, 43, 226, 0.15);
+                    color: var(--accent-codex);
+                    border: 1px solid rgba(138, 43, 226, 0.2);
+                }
+                .quality-tag.medium {
+                    background: rgba(255, 255, 255, 0.05);
+                    color: var(--text-secondary);
+                    border: 1px solid var(--border-subtle);
+                }
+
+                /* Boolean Icons */
+                .bool-icon {
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 6px;
+                    font-weight: bold;
+                }
+                .bool-true {
+                    color: var(--accent-success);
+                    background: rgba(0, 255, 148, 0.1);
+                }
+                .bool-false {
+                    color: var(--text-tertiary);
+                    opacity: 0.3;
+                }
+
+                /* Sections */
+                .section-spacer td {
+                    border: none;
+                    padding: 8px;
+                    background: rgba(0,0,0,0.2);
+                }
+                .section-row td {
+                    background: rgba(255, 255, 255, 0.02);
+                    font-weight: 700;
+                    color: var(--text-primary);
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.1em;
+                    padding-top: 24px;
+                }
+                .section-row .sticky-col {
+                    background: #0F0F0F; /* Slightly lighter than regular sticky */
+                }
+
+                @media (max-width: 768px) {
+                    .table-container {
+                        margin-top: 40px;
+                        border-radius: 16px;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
 
 function formatCredits(num) {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(0)}M credits`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}K credits`;
-    return `${num} credits`;
+    if (num >= 1000000) return `${(num / 1000000).toFixed(0)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+    return num.toString();
 }

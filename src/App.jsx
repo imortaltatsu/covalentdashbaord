@@ -8,7 +8,7 @@ import ComparisonTable from './components/ComparisonTable';
 import { useBenchmark } from './hooks/useBenchmark';
 
 function App() {
-  const [iterations, setIterations] = useState(10);
+  const [iterations, setIterations] = useState(50);
   const {
     isRunning,
     progress,
@@ -41,7 +41,28 @@ function App() {
           onStop={stopBenchmark}
         />
 
-        <Leaderboard results={results} />
+        <div className="leaderboards-container">
+          <Leaderboard
+            title="Scenario 1: Token Balances"
+            results={results}
+            testType="balanceLookup"
+          />
+          <Leaderboard
+            title="Scenario 2: Transactions"
+            results={results}
+            testType="transactions"
+          />
+          <Leaderboard
+            title="Scenario 3: NFT Metadata"
+            results={results}
+            testType="nftMetadata"
+          />
+          <Leaderboard
+            title="Scenario 4: Token Prices"
+            results={results}
+            testType="tokenPrices"
+          />
+        </div>
 
         <ComparisonTable />
       </main>

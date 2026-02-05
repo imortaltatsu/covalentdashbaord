@@ -7,9 +7,9 @@ export function calculateStats(latencies) {
   const n = sorted.length;
 
   const sum = sorted.reduce((a, b) => a + b, 0);
-  const mean = sum / n;
+  const mean = n > 0 ? sum / n : 0;
 
-  const variance = sorted.reduce((acc, val) => acc + (val - mean) ** 2, 0) / n;
+  const variance = n > 0 ? sorted.reduce((acc, val) => acc + (val - mean) ** 2, 0) / n : 0;
   const stdDev = Math.sqrt(variance);
 
   const percentile = (p) => {
