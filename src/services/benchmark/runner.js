@@ -70,7 +70,8 @@ export class BenchmarkRunner {
     const successes = results.filter(r => r.success);
 
     // Latency KPIs
-    const latencies = successes.map(r => r.latency);
+    // Latency KPIs - Include ALL results that have latency, even errors
+    const latencies = results.filter(r => typeof r.latency === 'number').map(r => r.latency);
     const stats = calculateStats(latencies);
 
     // TTFB KPIs

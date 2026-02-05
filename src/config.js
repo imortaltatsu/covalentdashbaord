@@ -5,8 +5,8 @@ export const config = {
   },
   codex: {
     apiKey: import.meta.env.VITE_CODEX_API_KEY || '',
-    baseUrl: 'https://api.codex.io/graphql',
-    rateLimit: { requests: 25, windowMs: 1000 },
+    baseUrl: 'https://graph.codex.io/graphql',
+    rateLimit: { requests: 5, windowMs: 1000 },
   },
   alchemy: {
     apiKey: import.meta.env.VITE_ALCHEMY_API_KEY || '',

@@ -78,6 +78,8 @@ export const providers = [
       autoPagination: 'Auto-Pagination (Generators)',
     },
   },
+  // Codex disabled for production due to plan limits
+  /*
   {
     id: 'codex',
     name: 'Codex',
@@ -105,7 +107,8 @@ export const providers = [
       utilityFunctions: 'Built-in Utility Functions',
     },
   },
+  */
 ];
 
 // Export all providers
-export const activeProviders = providers;
+export const activeProviders = providers.filter(p => p.id !== 'codex');

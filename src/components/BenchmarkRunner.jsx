@@ -195,6 +195,20 @@ export default function BenchmarkRunner() {
           border: 1px solid var(--border-subtle);
         }
 
+        .results-table .na {
+          color: var(--text-muted);
+        }
+        
+        .results-table .error-metric {
+            background: rgba(255, 68, 68, 0.05); /* faint red */
+        }
+        .results-table .error-metric .latency {
+            color: #ff6b6b; /* Soft red text */
+        }
+        .results-table .rate-fail {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
         .info-icon {
           color: var(--color-codex);
           flex-shrink: 0;
@@ -215,4 +229,86 @@ export default function BenchmarkRunner() {
       </div>
     </div>
   );
+}
+
+function BenchmarkResults({ results }) {
+  if (!results?.data) return null;
+
+  const providers = Object.entries(results.data);
+  const timestamp = new Date(results.timestamp).toLocaleString();
+
+  return (
+    <div className="benchmark-results">
+      <div className="results-meta">
+        <span>Last run: {timestamp}</span>
+        <span>{results.iterations} iterations per test</span>
+      </div>
+
+      <table className="results-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            {providers.map(([name]) => (
+              <th key={name} className={`provider-${name}`}>
+                {name.charAt(0).toUpperCase() + name.slice(1)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(TEST_LABELS).map(([key, label]) => (
+            <tr key={key}>
+              <td>{label}</td>
+              {providers.map(([name, data]) => {
+                const testResult = data[key];
+
+                if (!testResult) {
+                  return <td key={name} className="na">N/A</td>;
+                }
+
+                const { stats, successRate, error } = testResult;
+                const isBest = findBestProvider(providers, key) === name;
+                const isError = successRate < 90;
+
+                return (
+                  <td key={name} className={`${isBest ? 'best' : ''} ${isError ? 'error-metric' : ''}`} title={error}>
+                    {stats && stats.mean !== undefined ? (
+                      <>
+                        <span className="latency">
+                          {formatLatency(stats.mean)} <span className="latency-label">avg</span>
+                        </span>
+                        <span className="latency-secondary">
+                          median {formatLatency(stats.median)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="latency">Error</span>
+                    )}
+                    <span className={`success-rate ${isError ? 'rate-fail' : ''}`}>
+                      {successRate}% {isError ? 'Success' : ''}
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function findBestProvider(providers, testKey) {
+  let best = null;
+  let bestMean = Number.POSITIVE_INFINITY;
+
+  for (const [name, data] of providers) {
+    const testResult = data[testKey];
+    if (testResult?.stats?.mean && testResult.stats.mean < bestMean) {
+      bestMean = testResult.stats.mean;
+      best = name;
+    }
+  }
+
+  return best;
 }
