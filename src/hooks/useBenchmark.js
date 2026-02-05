@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { createBenchmarkRunner, TestType } from '../services/benchmark/index.js';
-import { getCovalentClient, getAlchemyClient, getMobulaClient } from '../services/api/index.js';
+import { getCovalentClient, getAlchemyClient, getMobulaClient, getCodexClient } from '../services/api/index.js';
 
 const STORAGE_KEY = 'benchmark_results';
 
@@ -22,11 +22,12 @@ function saveCachedResults(results) {
 }
 
 function resetClientInstances() {
-  // Force new client instances with fresh config
+  // Force new client instances with fresh config (excluding codex due to rate limits)
   return [
     { name: 'covalent', client: getCovalentClient() },
     { name: 'alchemy', client: getAlchemyClient() },
     { name: 'mobula', client: getMobulaClient() },
+    // { name: 'codex', client: getCodexClient() },
   ];
 }
 
@@ -71,19 +72,21 @@ export function useBenchmark() {
       });
     };
 
+    let completedRequestsCount = 0;
+
     const runner = createBenchmarkRunner({
       iterations,
       onProgress: (prog) => {
-        // Global request-level progress across all providers and test types:
-        // e.g. 3 providers * 4 tests * 10 iterations = 120 total requests
-        const completedRequests = (completedTests * iterations) + prog.iteration;
+        completedRequestsCount++;
 
         setProgress({
           provider: prog.provider,
           testType: prog.testType,
-          iteration: completedRequests,
+          iteration: Math.min(completedRequestsCount, totalRequests),
           total: totalRequests,
-          completedTests,
+          completedRequests: completedRequestsCount,
+          totalRequests: totalRequests,
+          completedTests, // This will still be slightly delayed but that's okay
           totalTests,
           perTestIteration: prog.iteration,
           perTestTotal: prog.total,

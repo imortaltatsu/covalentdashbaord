@@ -36,7 +36,21 @@ export function calculateSuccessRate(results) {
 }
 
 export function formatLatency(ms) {
+  if (typeof ms !== 'number' || isNaN(ms)) return '-';
   if (ms < 1) return '<1ms';
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
+}
+
+export function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+export function formatThroughput(rps) {
+  if (typeof rps !== 'number') return '-';
+  return `${rps.toFixed(1)} req/s`;
 }

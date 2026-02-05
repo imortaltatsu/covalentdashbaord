@@ -1,4 +1,4 @@
-import { providers } from '../data/providers';
+import { activeProviders as providers } from '../data/providers';
 
 export default function ComparisonTable() {
     const getWinner = (key) => {
@@ -11,10 +11,10 @@ export default function ComparisonTable() {
     const hasFreeTier = (p) => p.metrics.startingPrice === 0;
 
     return (
-        <div className="table-container">
+        <div className="glass-card table-container">
             <div className="table-header">
                 <div className="table-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 3h18v18H3z" />
                         <path d="M3 9h18" />
                         <path d="M3 15h18" />
@@ -23,8 +23,8 @@ export default function ComparisonTable() {
                     </svg>
                 </div>
                 <div>
-                    <h3 className="table-title">Detailed Comparison</h3>
-                    <p className="table-subtitle">Side-by-side comparison of all features and metrics</p>
+                    <h3 className="table-title">Provider Analysis</h3>
+                    <p className="table-subtitle">Comprehensive side-by-side technical evaluation</p>
                 </div>
             </div>
 
@@ -103,7 +103,7 @@ export default function ComparisonTable() {
                                     className={getWinner('rateLimit') === p.id ? 'winner-cell' : ''}
                                 >
                                     <span className="value" style={{ color: getWinner('rateLimit') === p.id ? p.color : 'inherit' }}>
-                                        {p.metrics.rateLimit === 999 ? 'Unlimited' : `${p.metrics.rateLimit} RPS`}
+                                        {p.metrics.rateLimit === null ? 'Unlimited' : `${p.metrics.rateLimit} RPS`}
                                     </span>
                                     {getWinner('rateLimit') === p.id && <span className="winner-badge">Best</span>}
                                 </td>
@@ -323,135 +323,225 @@ export default function ComparisonTable() {
 
             <style>{`
         .table-container {
-          background: var(--bg-card);
-          backdrop-filter: blur(20px);
+          background: var(--bg-glass);
           border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-md);
-          padding: var(--spacing-lg);
+          border-radius: 24px;
+          padding: 32px;
+          margin-top: 40px;
+          backdrop-filter: var(--glass-blur);
+          -webkit-backdrop-filter: var(--glass-blur);
+          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
         }
         
         .table-header {
           display: flex;
-          align-items: flex-start;
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-lg);
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 32px;
+          padding-bottom: 24px;
+          border-bottom: 1px solid var(--border-subtle);
         }
         
         .table-icon {
-          width: 32px;
-          height: 32px;
-          background: rgba(16, 185, 129, 0.1);
-          border-radius: var(--radius-sm);
+          width: 48px;
+          height: 48px;
+          background: rgba(0, 255, 148, 0.1);
+          border: 1px solid rgba(0, 255, 148, 0.2);
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: var(--accent-success);
-          flex-shrink: 0;
+          box-shadow: 0 0 15px rgba(0, 255, 148, 0.1);
         }
         
         .table-title {
-          font-size: 1rem;
-          font-weight: 600;
-          margin-bottom: 2px;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #fff;
+          margin: 0 0 4px 0;
+          letter-spacing: -0.02em;
         }
         
         .table-subtitle {
           color: var(--text-secondary);
-          font-size: 0.75rem;
+          font-size: 0.9rem;
+          margin: 0;
         }
         
         .table-scroll {
           overflow-x: auto;
+          margin: 0 -32px;
+          padding: 0 32px;
+          scroll-snap-type: x mandatory;
+        }
+
+        .comparison-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          text-align: left;
+          min-width: 800px; /* Ensure scroll gets triggered */
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+          padding: 16px;
+          border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        /* Sticky First Column */
+        .comparison-table th:first-child,
+        .comparison-table td:first-child {
+          position: sticky;
+          left: 0;
+          background: var(--bg-glass); /* Fallback */
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          z-index: 10;
+          border-right: 1px solid var(--border-subtle);
+        }
+        
+        .comparison-table th:first-child {
+          z-index: 20; /* Higher than td sticky */
+          background: rgba(10, 10, 10, 0.95); /* Opaque for header */
+        }
+
+        .comparison-table td:first-child {
+          background: rgba(10, 10, 10, 0.85); /* Slightly opaque for legibility */
+        }
+
+        .comparison-table th:not(:first-child),
+        .comparison-table td:not(:first-child) {
+          scroll-snap-align: start;
+        }
+
+        .comparison-table th {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--text-tertiary);
+        .comparison-table td {
+          padding: 20px 16px;
+          border-bottom: 1px solid var(--border-subtle);
+          color: var(--text-secondary);
+          transition: background 0.2s;
+        }
+
+        .comparison-table tr:last-child td {
+          border-bottom: none;
+        }
+
+        .comparison-table tr:hover td {
+          background: rgba(255, 255, 255, 0.02);
         }
         
         .provider-header-cell {
           display: flex;
           align-items: center;
-          gap: var(--spacing-xs);
-          font-weight: 600;
+          gap: 12px;
+          font-weight: 700;
+          font-size: 1rem;
+          color: #fff !important;
         }
         
         .provider-dot {
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
+          box-shadow: 0 0 10px currentColor;
         }
         
         .metric-cell {
           display: flex;
           align-items: center;
-          gap: var(--spacing-sm);
-          color: var(--text-secondary);
+          gap: 12px;
+          color: var(--text-primary);
+          font-weight: 500;
         }
         
         .metric-cell svg {
-          opacity: 0.6;
+          opacity: 0.5;
+          color: var(--text-tertiary);
         }
         
         .value {
-          font-weight: 600;
+          font-family: 'JetBrains Mono', monospace;
+          font-weight: 500;
+          color: var(--text-primary);
+          font-size: 0.95rem;
         }
         
         .winner-cell {
+          background: linear-gradient(90deg, rgba(0, 255, 148, 0.03), transparent);
           position: relative;
-          background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .winner-cell::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 2px;
+          background: var(--accent-success);
+          opacity: 0.5;
         }
         
         .winner-badge {
-          display: inline-block;
-          margin-left: var(--spacing-xs);
+          display: inline-flex;
+          align-items: center;
+          margin-left: 8px;
           font-size: 0.65rem;
-          font-weight: 600;
-          padding: 2px 6px;
-          background: rgba(16, 185, 129, 0.15);
+          font-weight: 700;
+          padding: 2px 8px;
+          background: rgba(0, 255, 148, 0.15);
           color: var(--accent-success);
-          border-radius: var(--radius-sm);
+          border: 1px solid rgba(0, 255, 148, 0.2);
+          border-radius: 12px;
           text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
         
-        .check {
+        .check { 
           color: var(--accent-success);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          filter: drop-shadow(0 0 8px rgba(0,255,148,0.4));
         }
         
-        .cross {
-          color: var(--text-muted);
-          opacity: 0.4;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .section-header {
-          background: rgba(255, 255, 255, 0.02);
+        .cross { 
+          color: var(--text-tertiary); 
+          opacity: 0.2; 
         }
         
         .section-header td {
-          padding: var(--spacing-md) var(--spacing-lg);
+          padding: 32px 16px 16px;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-size: 0.7rem;
-          color: var(--text-secondary);
+          letter-spacing: 0.15em;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--accent-codex);
+          border-bottom: 1px solid var(--border-subtle);
+          background: linear-gradient(90deg, rgba(138, 43, 226, 0.05), transparent);
         }
         
         .badge-success {
-          background: rgba(16, 185, 129, 0.15);
+          background: rgba(0, 255, 148, 0.1);
           color: var(--accent-success);
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 0.75rem;
-          font-weight: 500;
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          border: 1px solid rgba(0, 255, 148, 0.1);
         }
         
         .badge-neutral {
-          background: rgba(139, 92, 246, 0.15);
-          color: var(--color-mobula);
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 0.75rem;
+          background: var(--bg-secondary);
+          color: var(--text-tertiary);
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 0.8rem;
           font-weight: 500;
+          border: 1px solid var(--border-subtle);
         }
       `}</style>
         </div>

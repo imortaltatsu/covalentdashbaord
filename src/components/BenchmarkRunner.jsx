@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useBenchmark } from '../hooks/useBenchmark.js';
-import { formatLatency } from '../services/benchmark/stats.js';
+import { formatLatency, formatBytes, formatThroughput } from '../services/benchmark/stats.js';
 import { config } from '../config.js';
 
 const TEST_LABELS = {
@@ -8,6 +8,14 @@ const TEST_LABELS = {
   transactions: 'Transactions',
   nftMetadata: 'NFT Metadata',
   tokenPrices: 'Token Prices',
+};
+
+// Map technical metric names to user-friendly labels
+const METRIC_LABELS = {
+  latency: 'Latency (Avg)',
+  p95: 'Latency (p95)',
+  throughput: 'Throughput',
+  payload: 'Payload Size'
 };
 
 export default function BenchmarkRunner() {
@@ -28,88 +36,69 @@ export default function BenchmarkRunner() {
     runBenchmark(iterations);
   };
 
-  const apiKeysConfigured = 
-    config.covalent.apiKey || config.alchemy.apiKey || config.mobula.apiKey;
+  const apiKeysConfigured =
+    config.covalent.apiKey || config.alchemy.apiKey || config.mobula.apiKey || config.codex.apiKey;
 
   return (
     <div className="benchmark-runner">
-      <div className="benchmark-header">
-        <div className="benchmark-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="benchmark-title">Live Benchmark</h3>
-          <p className="benchmark-subtitle">Run real API tests against all providers</p>
-        </div>
-      </div>
-
-      {!apiKeysConfigured && (
-        <div className="benchmark-warning">
-          No API keys configured. Copy .env.example to .env and add your keys.
+      {isRunning && progress && (
+        <div className="progress-indicator">
+          <div
+            className="progress-fill"
+            style={{ width: `${Math.min(100, (progress.completedRequests / progress.totalRequests) * 100)}%` }}
+          />
         </div>
       )}
 
-      <div className="benchmark-controls">
-        <div className="iteration-control">
-          <label htmlFor="iterations">Iterations per test:</label>
-          <select
-            id="iterations"
-            value={iterations}
-            onChange={(e) => setIterations(Number(e.target.value))}
-            disabled={isRunning}
-          >
-            <option value={5}>5 (quick)</option>
-            <option value={10}>10 (default)</option>
-            <option value={25}>25 (thorough)</option>
-            <option value={50}>50 (comprehensive)</option>
-            <option value={100}>100 (full)</option>
-          </select>
+      <div className="header-row">
+        <div>
+          <h2 className="title">API Benchmark</h2>
+          <p className="subtitle">Real-time performance comparison</p>
         </div>
 
-        <div className="benchmark-actions">
+        <div className="controls">
+          <div className="select-wrapper">
+            <select
+              id="iterations"
+              value={iterations}
+              onChange={(e) => setIterations(Number(e.target.value))}
+              disabled={isRunning}
+            >
+              <option value={5}>5 runs</option>
+              <option value={10}>10 runs</option>
+              <option value={20}>20 runs</option>
+            </select>
+          </div>
+
           {!isRunning ? (
             <button
-              type="button"
-              className="btn-run"
+              className="btn btn-primary"
               onClick={handleRun}
               disabled={!apiKeysConfigured}
             >
-              Run Benchmark
+              Start Benchmark
             </button>
           ) : (
-            <button type="button" className="btn-stop" onClick={stopBenchmark}>
+            <button className="btn btn-danger" onClick={stopBenchmark}>
               Stop
             </button>
           )}
+
           {hasResults && !isRunning && (
-            <button type="button" className="btn-clear" onClick={clearResults}>
+            <button className="btn btn-secondary" onClick={clearResults}>
               Clear
             </button>
           )}
         </div>
       </div>
 
-      {isRunning && progress && (
-        <div className="benchmark-progress">
-          <div className="progress-info">
-            <span className="progress-provider">{progress.provider}</span>
-            <span className="progress-test">{TEST_LABELS[progress.testType] || progress.testType}</span>
-            <span className="progress-count">
-              {progress.iteration}/{progress.total}
-            </span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-bar__fill"
-              style={{ width: `${(progress.iteration / progress.total) * 100}%` }}
-            />
-          </div>
+      {!apiKeysConfigured && (
+        <div className="warning-banner">
+          ⚠️ No API keys configured. Please checking your .env file.
         </div>
       )}
 
-      {error && <div className="benchmark-error">{error}</div>}
+      {error && <div className="error-banner">{error}</div>}
 
       {hasResults && !isRunning && (
         <BenchmarkResults results={results} />
@@ -119,295 +108,111 @@ export default function BenchmarkRunner() {
         .benchmark-runner {
           background: var(--bg-card);
           border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-md);
-          padding: var(--spacing-lg);
+          border-radius: 20px;
+          padding: 32px;
+          position: relative;
+          overflow: hidden;
         }
 
-        .benchmark-header {
+        .header-row {
           display: flex;
-          align-items: flex-start;
-          gap: var(--spacing-sm);
-          margin-bottom: var(--spacing-md);
-        }
-
-        .benchmark-icon {
-          width: 32px;
-          height: 32px;
-          background: rgba(255, 107, 53, 0.1);
-          border-radius: var(--radius-sm);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--color-covalent);
-          flex-shrink: 0;
-        }
-
-        .benchmark-title {
-          font-size: 1rem;
-          font-weight: 600;
-          margin-bottom: 2px;
-        }
-
-        .benchmark-subtitle {
-          color: var(--text-secondary);
-          font-size: 0.75rem;
-        }
-
-        .benchmark-warning {
-          background: rgba(201, 145, 58, 0.1);
-          border: 1px solid rgba(201, 145, 58, 0.3);
-          border-radius: var(--radius-sm);
-          padding: var(--spacing-sm);
-          font-size: 0.75rem;
-          color: var(--accent-warning);
-          margin-bottom: var(--spacing-md);
-        }
-
-        .benchmark-controls {
-          display: flex;
-          align-items: center;
           justify-content: space-between;
-          gap: var(--spacing-md);
-          margin-bottom: var(--spacing-md);
-        }
-
-        .iteration-control {
-          display: flex;
           align-items: center;
-          gap: var(--spacing-sm);
-          font-size: 0.8rem;
-          color: var(--text-secondary);
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 16px;
         }
 
-        .iteration-control select {
+        .title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0 0 4px 0;
+        }
+
+        .subtitle {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          margin: 0;
+        }
+
+        .controls {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .select-wrapper select {
           background: var(--bg-secondary);
           border: 1px solid var(--border-subtle);
-          border-radius: var(--radius-sm);
-          padding: 6px 10px;
           color: var(--text-primary);
-          font-size: 0.8rem;
+          padding: 8px 12px;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          cursor: pointer;
         }
 
-        .benchmark-actions {
-          display: flex;
-          gap: var(--spacing-sm);
-        }
-
-        .btn-run, .btn-stop, .btn-clear {
+        .btn {
           padding: 8px 16px;
-          border-radius: var(--radius-sm);
-          font-size: 0.8rem;
+          border-radius: 12px;
+          font-size: 0.875rem;
           font-weight: 500;
           cursor: pointer;
-          transition: all var(--transition-fast);
           border: none;
+          transition: opacity 0.2s;
         }
 
-        .btn-run {
-          background: var(--color-covalent);
-          color: white;
+        /* ... */
+
+        .warning-banner, .error-banner {
+          padding: 12px;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          margin-bottom: 24px;
         }
 
-        .btn-run:hover:not(:disabled) {
-          opacity: 0.9;
-        }
+        /* ... */
 
-        .btn-run:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .btn-stop {
-          background: var(--accent-danger);
-          color: white;
-        }
-
-        .btn-clear {
-          background: transparent;
+        .table-wrapper {
           border: 1px solid var(--border-subtle);
-          color: var(--text-secondary);
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.01);
+          overflow: hidden;
         }
 
-        .benchmark-progress {
-          margin-bottom: var(--spacing-md);
-        }
+        /* ... */
 
-        .progress-info {
-          display: flex;
-          align-items: center;
-          gap: var(--spacing-md);
-          margin-bottom: var(--spacing-xs);
-          font-size: 0.75rem;
-        }
-
-        .progress-provider {
-          color: var(--color-covalent);
-          font-weight: 600;
-          text-transform: capitalize;
-        }
-
-        .progress-test {
-          color: var(--text-secondary);
-        }
-
-        .progress-count {
-          color: var(--text-muted);
-          margin-left: auto;
-        }
-
-        .benchmark-error {
-          background: rgba(196, 80, 80, 0.1);
-          border: 1px solid rgba(196, 80, 80, 0.3);
-          border-radius: var(--radius-sm);
-          padding: var(--spacing-sm);
-          font-size: 0.75rem;
-          color: var(--accent-danger);
-          margin-bottom: var(--spacing-md);
-        }
-      `}</style>
-    </div>
-  );
-}
-
-function BenchmarkResults({ results }) {
-  if (!results?.data) return null;
-
-  const providers = Object.entries(results.data);
-  const timestamp = new Date(results.timestamp).toLocaleString();
-
-  return (
-    <div className="benchmark-results">
-      <div className="results-meta">
-        <span>Last run: {timestamp}</span>
-        <span>{results.iterations} iterations per test</span>
-      </div>
-
-      <table className="results-table">
-        <thead>
-          <tr>
-            <th>Test</th>
-            {providers.map(([name]) => (
-              <th key={name} className={`provider-${name}`}>
-                {name.charAt(0).toUpperCase() + name.slice(1)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(TEST_LABELS).map(([key, label]) => (
-            <tr key={key}>
-              <td>{label}</td>
-              {providers.map(([name, data]) => {
-                const testResult = data[key];
-                if (!testResult || testResult.error) {
-                  return <td key={name} className="na">N/A</td>;
-                }
-
-                const { stats, successRate } = testResult;
-                const isBest = findBestProvider(providers, key) === name;
-
-                return (
-                  <td key={name} className={isBest ? 'best' : ''}>
-                    <span className="latency">
-                      {formatLatency(stats.mean)} <span className="latency-label">avg</span>
-                    </span>
-                    <span className="latency-secondary">
-                      median {formatLatency(stats.median)}
-                    </span>
-                    <span className="success-rate">{successRate}%</span>
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <style>{`
-        .benchmark-results {
-          margin-top: var(--spacing-md);
-        }
-
-        .results-meta {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.7rem;
-          color: var(--text-muted);
-          margin-bottom: var(--spacing-sm);
-        }
-
-        .results-table {
-          width: 100%;
-          border-collapse: collapse;
+        .payload-note {
+          margin-top: 16px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
           font-size: 0.8rem;
-        }
-
-        .results-table th,
-        .results-table td {
-          padding: var(--spacing-sm);
-          text-align: left;
-          border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .results-table th {
-          font-weight: 500;
           color: var(--text-secondary);
-          font-size: 0.7rem;
-          text-transform: uppercase;
+          display: flex;
+          gap: 8px;
+          align-items: flex-start;
+          border: 1px solid var(--border-subtle);
         }
 
-        .results-table .provider-covalent { color: var(--color-covalent); }
-        .results-table .provider-alchemy { color: var(--color-alchemy); }
-        .results-table .provider-mobula { color: var(--color-mobula); }
-
-        .results-table td.best {
-          background: rgba(61, 153, 112, 0.08);
-        }
-
-        .results-table td.best .latency {
-          color: var(--accent-success);
-          font-weight: 600;
-        }
-
-        .results-table .latency {
-          display: block;
-        }
-
-        .results-table .latency-label {
-          font-size: 0.65rem;
-          color: var(--text-muted);
-        }
-
-        .results-table .latency-secondary {
-          display: block;
-          font-size: 0.7rem;
-          color: var(--text-muted);
-        }
-
-        .results-table .success-rate {
-          font-size: 0.65rem;
-          color: var(--text-muted);
-        }
-
-        .results-table .na {
-          color: var(--text-muted);
+        .info-icon {
+          color: var(--color-codex);
+          flex-shrink: 0;
+          margin-top: 2px;
         }
       `}</style>
+
+      <div className="payload-note">
+        <svg className="info-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span>
+          <strong>Note on Payload Size:</strong> Large differences (MB vs KB) are due to API architecture.
+          Alchemy returns raw hex data in this benchmark. Obtaining enriched data (metadata, prices) would require additional calls or SDK usage, whereas GoldRush/Mobula return this by default.
+        </span>
+      </div>
     </div>
   );
-}
-
-function findBestProvider(providers, testKey) {
-  let best = null;
-  let bestMean = Number.POSITIVE_INFINITY;
-
-  for (const [name, data] of providers) {
-    const testResult = data[testKey];
-    if (testResult?.stats?.mean && testResult.stats.mean < bestMean) {
-      bestMean = testResult.stats.mean;
-      best = name;
-    }
-  }
-
-  return best;
 }

@@ -2,13 +2,13 @@
 export const providers = [
   {
     id: 'covalent',
-    name: 'Covalent',
-    initials: 'CV',
-    tagline: 'Unified Blockchain API',
+    name: 'GoldRush',
+    initials: 'GR',
+    tagline: 'The Gold Standard for Blockchain Data',
     description: 'Unified API for 200+ blockchains with comprehensive on-chain data.',
     website: 'https://www.covalenthq.com/',
-    color: '#ff6b35',
-    gradient: 'linear-gradient(135deg, #ff6b35 0%, #f7931a 50%, #ffc107 100%)',
+    color: '#FF4D00',
+    gradient: 'linear-gradient(135deg, #FF4D00 0%, #FF8A00 100%)',
     metrics: {
       chainsCount: 225,
       freeTierCredits: 100000,
@@ -23,11 +23,7 @@ export const providers = [
     historicalDataYears: 10,
     schemaNormalization: 'High',
     uniqueFeatures: {
-      nameResolution: true,
-      realtimeStreaming: true,
-      autoPagination: true,
-      multiChainFormat: true,
-      utilityFunctions: true,
+      nameResolution: 'Name Resolution (ENS, Lens, etc.)',
     },
   },
   {
@@ -37,8 +33,8 @@ export const providers = [
     tagline: 'Web3 Development Platform',
     description: 'Industry-leading infrastructure for Ethereum and L2 chains.',
     website: 'https://alchemy.com',
-    color: '#0052ff',
-    gradient: 'linear-gradient(135deg, #0052ff 0%, #4b8eff 100%)',
+    color: '#0052FF',
+    gradient: 'linear-gradient(135deg, #0052FF 0%, #00A3FF 100%)',
     metrics: {
       chainsCount: 64,
       freeTierCredits: 30000000,
@@ -53,11 +49,7 @@ export const providers = [
     historicalDataYears: 10,
     schemaNormalization: 'Medium',
     uniqueFeatures: {
-      nameResolution: false,
-      realtimeStreaming: false,
-      autoPagination: false,
-      multiChainFormat: false,
-      utilityFunctions: false,
+      realtimeStreaming: 'Real-time WebSocket Streaming',
     },
   },
   {
@@ -67,13 +59,13 @@ export const providers = [
     tagline: 'Real-time Trading Infra',
     description: 'Low-latency trading and wallet infrastructure for 88+ chains with generous free usage.',
     website: 'https://mobula.io',
-    color: '#8b5cf6',
-    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)',
+    color: '#8B5CF6',
+    gradient: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%)',
     metrics: {
       chainsCount: 88,
-      freeTierCredits: 10000, // Free plan includes 10k monthly credits
-      startingPrice: 0,       // Free tier available
-      rateLimit: 999,         // Effectively uncapped per docs "no rate limit"
+      freeTierCredits: 10000,
+      startingPrice: 0,
+      rateLimit: null, // Unlimited RPS
       endpoints: 50,
       dataFreshness: 'Real-time',
       sdkLanguages: 'TS, Python, JS',
@@ -83,11 +75,41 @@ export const providers = [
     historicalDataYears: 2,
     schemaNormalization: 'Medium',
     uniqueFeatures: {
-      nameResolution: false,
-      realtimeStreaming: false,
-      autoPagination: false,
-      multiChainFormat: false,
-      utilityFunctions: false,
+      autoPagination: 'Auto-Pagination (Generators)',
     },
   },
+  // Codex temporarily disabled due to rate limiting
+  /*
+  {
+    id: 'codex',
+    name: 'Codex',
+    initials: 'CX',
+    tagline: 'Enriched Blockchain Data',
+    description: 'Real-time, enriched blockchain data for tokens, NFTs, and wallet histories.',
+    website: 'https://codex.io',
+    color: '#00D1FF',
+    gradient: 'linear-gradient(135deg, #00D1FF 0%, #0075FF 100%)',
+    metrics: {
+      chainsCount: 80,
+      freeTierCredits: 50000,
+      startingPrice: 0,
+      rateLimit: 10,
+      endpoints: 60,
+      dataFreshness: 'Real-time',
+      sdkLanguages: 'TS, Python',
+      slaUptime: '99.95%',
+    },
+    historicalDataDepth: 'Full History',
+    historicalDataYears: 5,
+    schemaNormalization: 'High',
+    uniqueFeatures: {
+      multiChainFormat: 'Multi-Chain Input Formats',
+      utilityFunctions: 'Built-in Utility Functions',
+    },
+  },
+  */
 ];
+
+// Export all providers and active providers (Codex is commented out above)
+//export { providers };
+export const activeProviders = providers.filter(p => p.id !== 'codex');

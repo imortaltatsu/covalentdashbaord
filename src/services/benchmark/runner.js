@@ -30,8 +30,8 @@ export class BenchmarkRunner {
       ? delayMs
       : config.benchmark.requestDelayMs;
 
-    this.onProgress = onProgress || (() => {});
-    this.onResult = onResult || (() => {});
+    this.onProgress = onProgress || (() => { });
+    this.onResult = onResult || (() => { });
     this.aborted = false;
   }
 
@@ -40,18 +40,17 @@ export class BenchmarkRunner {
   }
 
   async runTest(client, testType, providerName) {
-    const results = [];
     const testFn = this.getTestFunction(client, testType);
 
     if (!testFn) {
       return { error: `Unknown test type: ${testType}`, results: [] };
     }
 
-    for (let i = 0; i < this.iterations; i++) {
-      if (this.aborted) break;
+    const testStartTime = performance.now();
+    const promises = Array.from({ length: this.iterations }).map(async (_, i) => {
+      if (this.aborted) return null;
 
       const result = await this.executeTest(testFn, i);
-      results.push(result);
 
       this.onProgress({
         provider: providerName,
@@ -61,22 +60,49 @@ export class BenchmarkRunner {
         lastResult: result,
       });
 
-      if (i < this.iterations - 1) {
-        await delay(this.delayMs);
-      }
-    }
+      return result;
+    });
 
-    const latencies = results.filter(r => r.success).map(r => r.latency);
+    const results = (await Promise.all(promises)).filter(r => r !== null);
+    const testEndTime = performance.now();
+    const totalDurationMs = testEndTime - testStartTime;
+
+    const successes = results.filter(r => r.success);
+
+    // Latency KPIs
+    const latencies = successes.map(r => r.latency);
     const stats = calculateStats(latencies);
+
+    // TTFB KPIs
+    const ttfbs = successes.filter(r => r.ttfb !== undefined).map(r => r.ttfb);
+    const ttfbStats = calculateStats(ttfbs);
+
+    // Payload Size KPI
+    const payloadSizes = successes.filter(r => r.payloadSize !== undefined).map(r => r.payloadSize);
+    const avgPayloadSize = payloadSizes.length
+      ? payloadSizes.reduce((a, b) => a + b, 0) / payloadSizes.length
+      : 0;
+
+    // Throughput (Requests per Second)
+    const throughput = totalDurationMs > 0
+      ? (successes.length / (totalDurationMs / 1000))
+      : 0;
+
     const successRate = calculateSuccessRate(results);
 
     const summary = {
       provider: providerName,
       testType,
       stats,
+      ttfbStats,
+      avgPayloadSize,
+      throughput,
       successRate,
+      history: results, // Include full history for graphing
       totalRequests: results.length,
+      durationMs: totalDurationMs,
       timestamp: Date.now(),
+      error: successRate === 0 ? results[0]?.error : null,
     };
 
     this.onResult(summary);
@@ -84,28 +110,23 @@ export class BenchmarkRunner {
   }
 
   async executeTest(testFn, iteration) {
-    const hasPerfNow = typeof performance !== 'undefined' && typeof performance.now === 'function';
-    const start = hasPerfNow ? performance.now() : Date.now();
-
     try {
       const result = await testFn();
-      const end = hasPerfNow ? performance.now() : Date.now();
-      const latency = end - start;
 
       return {
         success: true,
-        latency,
-        status: result?.status,
+        latency: result.latency,
+        ttfb: result.ttfb,
+        payloadSize: result.payloadSize,
+        status: result.status,
         iteration,
-        raw: result,
+        raw: result.data,
       };
     } catch (err) {
-      const end = hasPerfNow ? performance.now() : Date.now();
-      const latency = end - start;
-
       return {
         success: false,
-        latency,
+        latency: err.latency || 0,
+        ttfb: err.ttfb || 0,
         error: err.message,
         code: err.code || err.status,
         iteration,
@@ -143,23 +164,30 @@ export class BenchmarkRunner {
   async runAllTests(providers) {
     const allResults = {};
 
-    for (const { name, client } of providers) {
-      if (this.aborted) break;
+    // We run each provider in parallel for maximum speed
+    const providerPromises = providers.map(async ({ name, client }) => {
+      if (this.aborted) return;
       if (!client.isConfigured()) {
         allResults[name] = { error: 'API key not configured' };
-        continue;
+        return;
       }
 
       allResults[name] = {};
-      for (const testType of Object.values(TestType)) {
-        if (this.aborted) break;
+      const testTypes = Object.values(TestType);
+
+      // We also run the different test types for each provider in parallel
+      const testPromises = testTypes.map(async (testType) => {
+        if (this.aborted) return;
         const testFn = this.getTestFunction(client, testType);
         if (testFn) {
           allResults[name][testType] = await this.runTest(client, testType, name);
         }
-      }
-    }
+      });
 
+      await Promise.all(testPromises);
+    });
+
+    await Promise.all(providerPromises);
     return allResults;
   }
 }
